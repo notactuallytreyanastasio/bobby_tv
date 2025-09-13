@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments (each app has its own)
+*/venv/
+*/env/
+*/.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+*.log
+
+# App-specific ignores
+
+# Catalog Explorer
+catalog_explorer/venv/
+
+# Broadcasting App (shitting_it_out)
+shitting_it_out/venv/
+shitting_it_out/streaming_videos/
+shitting_it_out/*.mp4
+shitting_it_out/overlays/posts_cache.json
+shitting_it_out/overlays/ticker_data.json
+shitting_it_out/overlays/bluesky_config.json
+shitting_it_out/obs_config/streaming_config.json
+shitting_it_out/streaming_state.json
+shitting_it_out/recordings/
+
+# B-roll crawler
+b_roll/venv/
+b_roll/*.db-journal
+
+# Large media files
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.webm
+
+# Credentials (never commit these)
+**/bluesky_config.json
+**/streaming_config.json
