@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Bobbing Channel - Catalog Explorer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="tv-static"></div>
+    <div class="scanlines"></div>
+    
+    <header class="tv-header">
+        <div class="channel-info">
+            <span class="channel-number">CH 73</span>
+            <h1 class="channel-title">
+                <a href="/">THE BOBBING CHANNEL</a>
+            </h1>
+            <span class="live-indicator">● CATALOG</span>
+        </div>
+        
+        <nav class="tv-nav">
+            <a href="/" class="nav-btn {% if request.endpoint == 'index' %}active{% endif %}">📺 BROWSE</a>
+            <a href="/random" class="nav-btn" onclick="goToRandom(event)">🎲 RANDOM</a>
+            <a href="#" class="nav-btn" onclick="toggleNightMode()">🌙 NIGHT</a>
+        </nav>
+    </header>
+    
+    <main class="tv-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="tv-footer">
+        <div class="footer-ticker">
+            <span class="ticker-content">
+                📡 BROADCASTING FROM RASPBERRY PI • 
+                📼 1,327 ITEMS IN ARCHIVE • 
+                🎬 27TB OF CONTENT • 
+                📺 POWERED BY ARCHIVE.ORG • 
+                🌐 STREAMING TO STREAM.PLACE • 
+                ⚡ MADE WITH LOVE AND STATIC • 
+            </span>
+        </div>
+        <div class="signal-info">
+            SIGNAL: <span id="signal-strength">███████░░</span> 78%
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

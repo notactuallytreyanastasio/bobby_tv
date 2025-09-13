@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="control-panel">
+    <form method="get" action="/" class="filter-form">
+        <div class="filter-group">
+            <label class="retro-label">TYPE:</label>
+            <select name="type" class="retro-select" onchange="this.form.submit()">
+                <option value="all" {% if current_type == 'all' %}selected{% endif %}>ALL CHANNELS</option>
+                <option value="movies" {% if current_type == 'movies' %}selected{% endif %}>🎬 MOVIES ({{ type_counts.get('movies', 0) }})</option>
+                <option value="audio" {% if current_type == 'audio' %}selected{% endif %}>🎵 AUDIO ({{ type_counts.get('audio', 0) }})</option>
+                <option value="collection" {% if current_type == 'collection' %}selected{% endif %}>📁 COLLECTIONS ({{ type_counts.get('collection', 0) }})</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="retro-label">SORT:</label>
+            <select name="sort" class="retro-select" onchange="this.form.submit()">
+                <option value="random" {% if current_sort == 'random' %}selected{% endif %}>🎲 SHUFFLE</option>
+                <option value="downloads" {% if current_sort == 'downloads' %}selected{% endif %}>📊 POPULAR</option>
+                <option value="date" {% if current_sort == 'date' %}selected{% endif %}>📅 NEWEST</option>
+                <option value="title" {% if current_sort == 'title' %}selected{% endif %}>🔤 A-Z</option>
+                <option value="size" {% if current_sort == 'size' %}selected{% endif %}>💾 SIZE</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="retro-label">YEAR:</label>
+            <select name="year" class="retro-select" onchange="this.form.submit()">
+                <option value="">ANY YEAR</option>
+                {% for year in years %}
+                <option value="{{ year }}" {% if current_year == year|string %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group search-group">
+            <label class="retro-label">SEARCH:</label>
+            <input type="text" name="search" value="{{ current_search }}" 
+                   class="retro-input" placeholder="Find something...">
+            <button type="submit" class="retro-btn">🔍</button>
+        </div>
+    </form>
+    
+    <div class="stats-bar">
+        <span class="stat-item">📊 SHOWING {{ format_number(total_items) }} / {{ format_number(total_in_db) }} ITEMS</span>
+        <span class="stat-item">📄 PAGE {{ current_page }} / {{ total_pages }}</span>
+    </div>
+</div>
+
+<!-- Programming Ideas Section -->
+{% if programming_ideas and current_page == 1 and not current_search %}
+<div class="programming-ideas">
+    <h2 class="retro-title">📺 PROGRAMMING BLOCKS</h2>
+    <div class="idea-blocks">
+        {% for idea in programming_ideas %}
+        <div class="idea-block">
+            <h3 class="block-title">{{ idea.block }}</h3>
+            <p class="block-desc">{{ idea.description }}</p>
+            <div class="block-items">
+                {% for item in idea.items[:2] %}
+                <a href="/item/{{ item.identifier }}" class="block-item">
+                    • {{ item.title[:30] }}{% if item.title|length > 30 %}...{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Media Grid -->
+<div class="media-grid">
+    {% for item in items %}
+    <div class="media-card" onclick="location.href='/item/{{ item.identifier }}'">
+        <div class="media-thumbnail">
+            <img src="{{ item.thumbnail_url }}" 
+                 alt="{{ item.title }}"
+                 loading="lazy"
+                 onerror="this.src='/static/img/no-signal.gif'; this.onerror=null;">
+            <div class="media-type-badge">
+                {% if item.mediatype == 'movies' %}🎬{% elif item.mediatype == 'audio' %}🎵{% else %}📁{% endif %}
+            </div>
+            {% if item.downloads and item.downloads > 1000 %}
+            <div class="popular-badge">HOT</div>
+            {% endif %}
+        </div>
+        <div class="media-info">
+            <h3 class="media-title">{{ item.title[:50] }}{% if item.title|length > 50 %}...{% endif %}</h3>
+            <div class="media-meta">
+                {% if item.creator %}
+                <span class="meta-item">👤 {{ item.creator[:20] }}</span>
+                {% endif %}
+                {% if item.year %}
+                <span class="meta-item">📅 {{ item.year }}</span>
+                {% endif %}
+                {% if item.downloads %}
+                <span class="meta-item">⬇ {{ format_number(item.downloads) }}</span>
+                {% endif %}
+                {% if item.item_size %}
+                <span class="meta-item">💾 {{ format_size(item.item_size) }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if current_page > 1 %}
+    <a href="?page={{ current_page - 1 }}&type={{ current_type }}&sort={{ current_sort }}&search={{ current_search }}&year={{ current_year }}" 
+       class="page-btn">◄ PREV</a>
+    {% endif %}
+    
+    <span class="page-info">
+        CHANNEL {{ current_page }} OF {{ total_pages }}
+    </span>
+    
+    {% if current_page < total_pages %}
+    <a href="?page={{ current_page + 1 }}&type={{ current_type }}&sort={{ current_sort }}&search={{ current_search }}&year={{ current_year }}" 
+       class="page-btn">NEXT ►</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
