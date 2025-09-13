@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bobby TV Ticker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .ticker-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            border-top: 3px solid #ff6b6b;
+        }
+
+        .ticker-label {
+            background: linear-gradient(90deg, #ff6b6b, #ff8787);
+            color: white;
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 150px;
+            justify-content: center;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+
+        .ticker-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
+
+        .ticker-text {
+            position: absolute;
+            white-space: nowrap;
+            color: #ffffff;
+            font-size: 24px;
+            line-height: 60px;
+            animation: scroll 30s linear infinite;
+            padding-left: 100%;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .flash {
+            animation: flash 1s ease-in-out;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticker-container">
+        <div class="ticker-label">BOBBY TV</div>
+        <div class="ticker-content">
+            <div class="ticker-text">🎬 BREAKING: Local Man Discovers Pause Button After 47 Years of Continuous Viewing • 📺 Scientists Confirm: Static on Channel 3 Actually Better Than Most Modern Shows • 🎭 Nation's Dads Unite to Defend Right to Fall Asleep During Movies • 📻 Study Finds 87% of Remote Controls Lost in Same Couch for Past Decade • 🎪 Area Woman Successfully Explains Plot of Inception to Confused Husband • 🎨 Breaking: VHS Tracking Issues Now Considered 'Artistic Choice' by Film Students • 📼 Local Teen Discovers Parents' Secret: They Actually Like Black & White Movies • 🎯 Congress Debates Whether Die Hard is Christmas Movie in Emergency Session • 🎬 Millennials Shocked to Learn Movies Once Had Intermissions for Bathroom Breaks • 📺 Netflix Algorithm Achieves Sentience, Still Can't Find Anything Good to Watch • 🎭 Archaeological Discovery: Ancient Blockbuster Card Found in Tomb • 📻 Man Claims He 'Was Just Resting His Eyes' During Entire Lord of the Rings Trilogy • 🎪 Study: 99% of People Still Don't Know What Criterion Collection Actually Is • 🎨 Local Man's 'I'll Just Watch One More Episode' Becomes 3-Day Binge • 📼 Scientists Baffled: How Did Every Family Own Same 12 DVDs in 2003? • 🎯 Breaking: Remote Control Grows Legs, Still Can't Escape Couch Cushions • 🎬 BREAKING: Local Man Discovers Pause Button After 47 Years of Continuous Viewing • 📺 Scientists Confirm: Static on Channel 3 Actually Better Than Most Modern Shows • 🎭 Nation's Dads Unite to Defend Right to Fall Asleep During Movies • 📻 Study Finds 87% of Remote Controls Lost in Same Couch for Past Decade • 🎪 Area Woman Successfully Explains Plot of Inception to Confused Husband • 🎨 Breaking: VHS Tracking Issues Now Considered 'Artistic Choice' by Film Students • 📼 Local Teen Discovers Parents' Secret: They Actually Like Black & White Movies • 🎯 Congress Debates Whether Die Hard is Christmas Movie in Emergency Session • 🎬 Millennials Shocked to Learn Movies Once Had Intermissions for Bathroom Breaks • 📺 Netflix Algorithm Achieves Sentience, Still Can't Find Anything Good to Watch • 🎭 Archaeological Discovery: Ancient Blockbuster Card Found in Tomb • 📻 Man Claims He 'Was Just Resting His Eyes' During Entire Lord of the Rings Trilogy • 🎪 Study: 99% of People Still Don't Know What Criterion Collection Actually Is • 🎨 Local Man's 'I'll Just Watch One More Episode' Becomes 3-Day Binge • 📼 Scientists Baffled: How Did Every Family Own Same 12 DVDs in 2003? • 🎯 Breaking: Remote Control Grows Legs, Still Can't Escape Couch Cushions</div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh posts every few minutes
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>

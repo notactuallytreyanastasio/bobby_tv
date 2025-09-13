@@ -1,0 +1,20 @@
+{
+  "bluesky": {
+    "handle": "your-handle.bsky.social",
+    "app_password": "",
+    "refresh_minutes": 5
+  },
+  "ticker": {
+    "speed": 30,
+    "background_color": "rgba(0, 0, 0, 0.8)",
+    "text_color": "#ffffff",
+    "font_size": "24px",
+    "font_family": "Arial, sans-serif",
+    "refresh_minutes": 5
+  },
+  "branding": {
+    "channel_name": "The Bobbing Channel",
+    "tagline": "24/7 Archive.org Classics",
+    "logo_position": "top-right"
+  }
+}

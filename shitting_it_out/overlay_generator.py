@@ -53,17 +53,24 @@ class OverlayGenerator:
         """Fetch recent posts from Bluesky"""
         posts = []
 
-        # This is a simplified example - you'll need proper ATP authentication
-        # For now, returning sample posts
+        # Onion-style satirical headlines for the ticker
         sample_posts = [
-            "🎬 Now playing: Classic cartoons from the 1940s",
-            "📺 Coming up next: Vintage educational films",
-            "🎭 Tonight at 8PM: Public domain feature films",
-            "📻 Remember to check out our catalog at bobby.tv",
-            "🎪 The Bobbing Channel - Your 24/7 vintage entertainment",
-            "🎨 Featuring content from Archive.org's vast collection",
-            "📼 Over 1,300 titles in rotation",
-            "🎯 Submit requests via Bluesky mentions",
+            "🎬 BREAKING: Local Man Discovers Pause Button After 47 Years of Continuous Viewing",
+            "📺 Scientists Confirm: Static on Channel 3 Actually Better Than Most Modern Shows",
+            "🎭 Nation's Dads Unite to Defend Right to Fall Asleep During Movies",
+            "📻 Study Finds 87% of Remote Controls Lost in Same Couch for Past Decade",
+            "🎪 Area Woman Successfully Explains Plot of Inception to Confused Husband",
+            "🎨 Breaking: VHS Tracking Issues Now Considered 'Artistic Choice' by Film Students",
+            "📼 Local Teen Discovers Parents' Secret: They Actually Like Black & White Movies",
+            "🎯 Congress Debates Whether Die Hard is Christmas Movie in Emergency Session",
+            "🎬 Millennials Shocked to Learn Movies Once Had Intermissions for Bathroom Breaks",
+            "📺 Netflix Algorithm Achieves Sentience, Still Can't Find Anything Good to Watch",
+            "🎭 Archaeological Discovery: Ancient Blockbuster Card Found in Tomb",
+            "📻 Man Claims He 'Was Just Resting His Eyes' During Entire Lord of the Rings Trilogy",
+            "🎪 Study: 99% of People Still Don't Know What Criterion Collection Actually Is",
+            "🎨 Local Man's 'I'll Just Watch One More Episode' Becomes 3-Day Binge",
+            "📼 Scientists Baffled: How Did Every Family Own Same 12 DVDs in 2003?",
+            "🎯 Breaking: Remote Control Grows Legs, Still Can't Escape Couch Cushions",
         ]
 
         return sample_posts

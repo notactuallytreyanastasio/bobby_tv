@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bobby TV Full Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: transparent;
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+        }
+
+        /* Channel Bug / Logo */
+        .channel-bug {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 2px solid #ff6b6b;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .channel-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .channel-tagline {
+            font-size: 14px;
+            color: #ffffff;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* Now Playing */
+        .now-playing {
+            position: absolute;
+            bottom: 80px;
+            left: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            display: none;  /* Will be shown via JavaScript */
+        }
+
+        .now-playing-label {
+            color: #ff6b6b;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .now-playing-title {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .now-playing-info {
+            color: #cccccc;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* News Ticker */
+        .ticker-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.9));
+            display: flex;
+            align-items: center;
+            border-top: 4px solid #ff6b6b;
+            z-index: 9999;
+        }
+
+        .ticker-label {
+            background: linear-gradient(90deg, #ff6b6b, #ff8787);
+            color: white;
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 150px;
+            justify-content: center;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .ticker-label::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 30px 0 30px 20px;
+            border-color: transparent transparent transparent #ff8787;
+        }
+
+        .ticker-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            padding-left: 30px;
+        }
+
+        .ticker-text {
+            position: absolute;
+            white-space: nowrap;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 80px;
+            animation: scroll 240s linear infinite;
+            padding-left: 100%;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Time Display */
+        .time-display {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+        }
+
+        /* Intermission Screen */
+        .intermission {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .intermission-title {
+            font-size: 72px;
+            font-weight: bold;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .intermission-message {
+            font-size: 32px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Channel Bug -->
+    <div class="channel-bug">
+        <div class="channel-name">The Bobbing Channel</div>
+        <div class="channel-tagline">24/7 Archive.org Classics</div>
+    </div>
+
+    <!-- Time Display -->
+    <div class="time-display" id="time"></div>
+
+    <!-- Now Playing -->
+    <div class="now-playing" id="nowPlaying">
+        <div class="now-playing-label">Now Playing</div>
+        <div class="now-playing-title" id="nowPlayingTitle">Loading...</div>
+        <div class="now-playing-info" id="nowPlayingInfo"></div>
+    </div>
+
+    <!-- News Ticker -->
+    <div class="ticker-container">
+        <div class="ticker-label">LIVE</div>
+        <div class="ticker-content">
+            <div class="ticker-text">🎬 BREAKING: Local Man Discovers Pause Button After 47 Years of Continuous Viewing • 📺 Scientists Confirm: Static on Channel 3 Actually Better Than Most Modern Shows • 🎭 Nation's Dads Unite to Defend Right to Fall Asleep During Movies • 📻 Study Finds 87% of Remote Controls Lost in Same Couch for Past Decade • 🎪 Area Woman Successfully Explains Plot of Inception to Confused Husband • 🎨 Breaking: VHS Tracking Issues Now Considered 'Artistic Choice' by Film Students • 📼 Local Teen Discovers Parents' Secret: They Actually Like Black & White Movies • 🎯 Congress Debates Whether Die Hard is Christmas Movie in Emergency Session • 🎬 Millennials Shocked to Learn Movies Once Had Intermissions for Bathroom Breaks • 📺 Netflix Algorithm Achieves Sentience, Still Can't Find Anything Good to Watch • 🎭 Archaeological Discovery: Ancient Blockbuster Card Found in Tomb • 📻 Man Claims He 'Was Just Resting His Eyes' During Entire Lord of the Rings Trilogy • 🎪 Study: 99% of People Still Don't Know What Criterion Collection Actually Is • 🎨 Local Man's 'I'll Just Watch One More Episode' Becomes 3-Day Binge • 📼 Scientists Baffled: How Did Every Family Own Same 12 DVDs in 2003? • 🎯 Breaking: Remote Control Grows Legs, Still Can't Escape Couch Cushions • 🎬 BREAKING: Local Man Discovers Pause Button After 47 Years of Continuous Viewing • 📺 Scientists Confirm: Static on Channel 3 Actually Better Than Most Modern Shows • 🎭 Nation's Dads Unite to Defend Right to Fall Asleep During Movies • 📻 Study Finds 87% of Remote Controls Lost in Same Couch for Past Decade • 🎪 Area Woman Successfully Explains Plot of Inception to Confused Husband • 🎨 Breaking: VHS Tracking Issues Now Considered 'Artistic Choice' by Film Students • 📼 Local Teen Discovers Parents' Secret: They Actually Like Black & White Movies • 🎯 Congress Debates Whether Die Hard is Christmas Movie in Emergency Session • 🎬 Millennials Shocked to Learn Movies Once Had Intermissions for Bathroom Breaks • 📺 Netflix Algorithm Achieves Sentience, Still Can't Find Anything Good to Watch • 🎭 Archaeological Discovery: Ancient Blockbuster Card Found in Tomb • 📻 Man Claims He 'Was Just Resting His Eyes' During Entire Lord of the Rings Trilogy • 🎪 Study: 99% of People Still Don't Know What Criterion Collection Actually Is • 🎨 Local Man's 'I'll Just Watch One More Episode' Becomes 3-Day Binge • 📼 Scientists Baffled: How Did Every Family Own Same 12 DVDs in 2003? • 🎯 Breaking: Remote Control Grows Legs, Still Can't Escape Couch Cushions</div>
+        </div>
+    </div>
+
+    <!-- Intermission Screen (hidden by default) -->
+    <div class="intermission" id="intermission">
+        <div class="intermission-title">We'll Be Right Back</div>
+        <div class="intermission-message">The Bobbing Channel</div>
+    </div>
+
+    <script>
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            document.getElementById('time').textContent = timeStr;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Show/hide now playing periodically
+        let showNowPlaying = false;
+        setInterval(() => {
+            const nowPlayingEl = document.getElementById('nowPlaying');
+            if (showNowPlaying) {
+                nowPlayingEl.style.display = 'block';
+                setTimeout(() => {
+                    nowPlayingEl.style.display = 'none';
+                }, 10000);  // Show for 10 seconds
+            }
+            showNowPlaying = !showNowPlaying;
+        }, 30000);  // Every 30 seconds
+
+        // Auto-refresh
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>

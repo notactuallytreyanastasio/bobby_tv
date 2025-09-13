@@ -1,6 +1,10 @@
-# Bobby TV Streaming System
+# Bobby TV Streaming System (shitting_it_out)
 
-A lightweight 24/7 streaming system that broadcasts Archive.org content to stream.place using OBS, with smart storage management and Bluesky integration for live tickers.
+A lightweight 24/7 streaming system that broadcasts Archive.org content to stream.place using OBS, with smart storage management and satirical news tickers.
+
+**Last Updated**: September 2024
+**Status**: Production Ready
+**Stream Endpoint**: rtmps://stream.place:1935/live
 
 ## Overview
 
@@ -9,6 +13,23 @@ This system creates a continuous TV channel that:
 - Manages storage intelligently (only keeps 2 videos at a time)
 - Displays your Bluesky posts as a news ticker
 - Broadcasts to stream.place via RTMP
+
+## 🎯 Key Innovation: The OBS Feeder
+
+The **OBS Feeder** (`obs_feeder.py`) is the secret sauce that makes seamless 24/7 streaming possible:
+
+### How It Works
+1. OBS reads a **single file**: `streaming_videos/current_stream.mp4`
+2. The feeder **atomically swaps** this file with new content
+3. OBS never knows the file changed - it just keeps playing
+4. Result: Seamless transitions with no interruption!
+
+### Why This Matters
+- No complex playlist management in OBS
+- No VLC source needed
+- Works with basic Media Source
+- Zero-interruption transitions
+- Automatic video rotation
 
 ## Components
 
@@ -46,21 +67,34 @@ This system creates a continuous TV channel that:
 
 ## Quick Start
 
-### 1. Initial Setup
+### Fastest Way to Stream
 
 ```bash
-# Download first videos (will get 2 videos)
+# One-time setup
+make setup
+
+# Start streaming
+make stream
+```
+
+That's it! The Makefile handles everything.
+
+### Manual Setup (if needed)
+
+```bash
+# 1. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+pip install requests
+
+# 2. Download initial videos
 python video_manager.py maintain
 
-# Generate OBS playlist
-python video_manager.py playlist
-
-# Create overlays
+# 3. Generate overlays
 python overlay_generator.py full
-python bluesky_ticker.py generate
 
-# Show OBS setup instructions
-python obs_controller.py setup
+# 4. Start the feeder
+python obs_feeder.py run
 ```
 
 ### 2. Configure Streaming
@@ -85,14 +119,33 @@ Edit `overlays/bluesky_config.json`:
 }
 ```
 
-### 4. Start Streaming
+### 4. Configure OBS Studio
 
-**Option A: Using OBS Studio**
-1. Open OBS Studio
-2. Add VLC Source → `streaming_videos/obs_playlist.m3u`
-3. Add Browser Source → `overlays/full_overlay.html`
-4. Configure stream settings (see instructions: `python obs_controller.py setup`)
-5. Start streaming
+**IMPORTANT**: We use a single file that gets swapped seamlessly!
+
+1. **Add Media Source** (NOT VLC Source):
+   - Name: "Bobby TV Stream"
+   - Local File: `/path/to/shitting_it_out/streaming_videos/current_stream.mp4`
+   - ✅ **Loop** (CRITICAL!)
+   - ✅ Restart playback when source becomes active
+
+2. **Add Browser Source** for overlay:
+   - URL: `file:///path/to/shitting_it_out/overlays/full_overlay.html`
+   - Width: 1920, Height: 1080
+   - Make sure it's ABOVE the Media Source
+
+3. **Configure Stream Settings**:
+   - Settings → Stream
+   - Service: Custom
+   - Server: `rtmps://stream.place:1935/live`
+   - Stream Key: (get from stream.place)
+
+4. **Start the Feeder** (in terminal):
+   ```bash
+   make stream  # This keeps videos rotating
+   ```
+
+5. **Start Streaming** in OBS
 
 **Option B: Direct FFmpeg (lighter weight)**
 ```bash
