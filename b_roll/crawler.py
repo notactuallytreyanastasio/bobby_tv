@@ -87,9 +87,14 @@ class ArchiveCrawler:
         console.print(f"[green]✓[/green] Database initialized at {self.db_path}")
     
     def fetch_user_items(self, username: str, rows: int = 100, page: int = 1) -> Dict:
-        """Fetch items uploaded by a specific user"""
+        """Fetch items from a user's collection"""
+        # For Archive.org member pages, use @username directly in the query
+        # This searches for items that reference this member account
+        if not username.startswith('@'):
+            username = f'@{username}'
+        
         params = {
-            'q': f'uploader:{username}',
+            'q': username,
             'fl': 'identifier,title,description,creator,date,year,mediatype,collection,subject,language,licenseurl,downloads,item_size',
             'rows': rows,
             'page': page,

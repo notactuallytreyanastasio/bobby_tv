@@ -6,6 +6,8 @@ Archive.org media crawler and SQLite database for The Bobbing Channel.
 
 This tool crawls the Archive.org collection at https://archive.org/details/@mark_pines_archive_project and builds a local SQLite database of all available media with metadata. This allows us to browse and plan programming for the channel without downloading the actual media files.
 
+**Note:** The current implementation finds items that reference `@mark_pines_archive_project` in their metadata. This may not capture all items if they're uploaded under a different mechanism. The crawler currently finds ~96 items.
+
 ## Features
 
 - Crawls all uploads from a specified Archive.org user
