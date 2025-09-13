@@ -2,29 +2,21 @@
 
 Archive.org media crawler and SQLite database for The Bobbing Channel.
 
-## Purpose
+## Overview
 
-This tool crawls the Archive.org collection at https://archive.org/details/@mark_pines_archive_project and builds a local SQLite database of all available media with metadata. This allows us to browse and plan programming for the channel without downloading the actual media files.
-
-**Note:** The current implementation finds items that reference `@mark_pines_archive_project` in their metadata. This may not capture all items if they're uploaded under a different mechanism. The crawler currently finds ~96 items.
-
-## Features
-
-- Crawls all uploads from a specified Archive.org user
-- Extracts comprehensive metadata (title, description, thumbnails, duration, etc.)
-- Stores everything in a SQLite database for fast querying
-- Provides statistics on the media collection
-- Handles video, audio, and other media types
+This tool crawls the Archive.org collection at https://archive.org/details/markpines and maintains a SQLite database of all 1,327 media items (27TB total). The database enables browsing and planning programming for the channel without downloading the actual media files.
 
 ## Installation
 
 ```bash
+python3 -m venv tv
+source tv/bin/activate
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-### Initial crawl
+### Crawl the collection
 ```bash
 python crawler.py
 ```
@@ -34,57 +26,26 @@ python crawler.py
 python crawler.py --stats
 ```
 
-### Specify custom database
-```bash
-python crawler.py --db custom.db
-```
+## Database
 
-### Crawl different user
-```bash
-python crawler.py --user different_archive_user
-```
+The SQLite database (`media_library.db`) contains:
 
-## Database Schema
+- **1,327 total items**
+  - 1,321 movies
+  - 5 collections
+  - 1 audio item
+- **27TB total size**
+- **Metadata fields**: identifier, title, creator, date, mediatype, description, downloads, item_url, thumbnail_url
 
-The SQLite database contains two main tables:
+## Collection
 
-### media
-- `identifier`: Archive.org unique ID (primary key)
-- `title`: Media title
-- `description`: Full description
-- `creator`: Creator/uploader
-- `date`: Upload/creation date
-- `mediatype`: Type of media (movies, audio, etc.)
-- `collection`: Collection it belongs to
-- `thumbnail_url`: URL to thumbnail image
-- `download_url`: Direct download URL for the media
-- `duration`: Length of media (for video/audio)
-- `size`: File size in bytes
-- `format`: File format
-- `views`: View count
-- `downloads`: Download count
-- `subject`: Tags/subjects (JSON)
-- `language`: Language code
-- `licenseurl`: License URL
-- `crawled_at`: When we crawled this item
-- `raw_metadata`: Complete metadata JSON
-
-### crawl_history
-Tracks crawl runs for monitoring and debugging.
+The crawler fetches items from the `markpines` collection on Archive.org:
+- Collection URL: https://archive.org/details/markpines
+- Uses Archive.org Search API
+- No authentication required (public collection)
 
 ## Next Steps
 
-After populating the database, a web interface will be built to:
-- Browse the media library
-- Search and filter content
-- Plan channel programming
-- Mark favorites and create playlists
-- Preview thumbnails and metadata
-
-## Notes for Future Development
-
-- Database is stored as `media_library.db` by default
-- Crawler includes rate limiting to be respectful to Archive.org
-- All metadata is preserved in raw_metadata field for future needs
-- Thumbnail URLs are extracted when available, with fallback to Archive.org's default
-- Video files prioritize original uploads over derivatives
+- Build web interface for browsing the media library
+- Create playlists and programming schedules
+- Set up streaming pipeline to serve content from Archive.org to stream.place
