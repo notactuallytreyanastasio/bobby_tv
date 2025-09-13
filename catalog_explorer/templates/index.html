@@ -58,7 +58,7 @@
             <h3 class="block-title">{{ idea.block }}</h3>
             <p class="block-desc">{{ idea.description }}</p>
             <div class="block-items">
-                {% for item in idea.items[:2] %}
+                {% for item in idea['items'][:2] %}
                 <a href="/item/{{ item.identifier }}" class="block-item">
                     • {{ item.title[:30] }}{% if item.title|length > 30 %}...{% endif %}
                 </a>
