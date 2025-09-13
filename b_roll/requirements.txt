@@ -1,0 +1,4 @@
+requests>=2.31.0
+sqlite3-utils>=3.35
+python-dateutil>=2.8.2
+rich>=13.5.2
