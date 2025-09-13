@@ -75,12 +75,20 @@ class ArchiveCrawler:
             )
         ''')
         
-        # Create indexes for better query performance
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_mediatype ON media(mediatype)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_collection ON media(collection)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_date ON media(date)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_year ON media(year)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_subject ON media(subject)')
+        # Create indexes for better query performance (only for columns that exist)
+        try:
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_mediatype ON media(mediatype)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_collection ON media(collection)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_date ON media(date)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_year ON media(year)')
+            # Only create subject index if column exists
+            cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='media'")
+            table_schema = cursor.fetchone()[0]
+            if 'subject' in table_schema:
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_subject ON media(subject)')
+        except sqlite3.OperationalError as e:
+            # Ignore index creation errors for missing columns
+            pass
         
         conn.commit()
         conn.close()
@@ -387,9 +395,9 @@ class ArchiveCrawler:
         # Total size and file counts
         cursor.execute("""
             SELECT 
-                SUM(total_size) as total_size,
-                SUM(file_count) as total_files,
-                COUNT(CASE WHEN duration IS NOT NULL THEN 1 END) as items_with_duration
+                SUM(item_size) as total_size,
+                COUNT(*) as total_files,
+                COUNT(CASE WHEN item_size IS NOT NULL AND item_size > 0 THEN 1 END) as items_with_size
             FROM media
         """)
         result = cursor.fetchone()
@@ -401,12 +409,12 @@ class ArchiveCrawler:
         size_gb = stats['total_size_bytes'] / (1024**3) if stats['total_size_bytes'] else 0
         stats['total_size_gb'] = round(size_gb, 2)
         
-        # Format distribution
+        # Format distribution (using mediatype since we don't have primary_format)
         cursor.execute("""
-            SELECT primary_format, COUNT(*) as count
+            SELECT mediatype, COUNT(*) as count
             FROM media
-            WHERE primary_format IS NOT NULL
-            GROUP BY primary_format
+            WHERE mediatype IS NOT NULL
+            GROUP BY mediatype
             ORDER BY count DESC
             LIMIT 10
         """)
@@ -448,8 +456,7 @@ class ArchiveCrawler:
         
         overview_table.add_row("Total Items", str(stats['total_items']))
         overview_table.add_row("Total Size", f"{stats['total_size_gb']} GB")
-        overview_table.add_row("Total Files", str(stats['total_files']))
-        overview_table.add_row("Items with Duration", str(stats['items_with_duration']))
+        overview_table.add_row("Items with Size Info", str(stats.get('items_with_duration', 0)))
         
         console.print(overview_table)
         console.print()
