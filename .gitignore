@@ -50,4 +50,17 @@ b_roll/*.db-journal
 
 # Credentials (never commit these)
 **/bluesky_config.json
-**/streaming_config.json
+**/streaming_config.json# The directory Mix will write compiled artifacts to.
+
+bob_tv/_build/
+bob_tv/cover/
+bob_tv/deps/
+bob_tv/doc/
+bob_tv/.fetch
+bob_tv/erl_crash.dump
+bob_tv/*.ez
+bob_tv/tmp/
+bob_tv/bob_tv-*.tar
+bob_tv/priv/static/assets/
+bob_tv/priv/static/cache_manifest.json
+bob_tv/assets/node_modules/

@@ -34,24 +34,32 @@ This project realizes that vision with:
 
 ## 📁 Project Components
 
-### 1. `catalog_explorer/` - Content Browser
-Web interface for browsing the media library
+### 1. `bob_tv/` - Elixir/Phoenix LiveView Application (NEW!)
+Modern web application with real-time features
+- **Catalog Explorer**: Browse 1,327+ items with retro TV aesthetic
+- **Streaming System** (In Development): Port of Python streaming engine
+- **LiveView Dashboard** (Coming Soon): Real-time monitoring interface
+- Runs at http://localhost:4000
+
+### 2. `catalog_explorer/` - Python Content Browser (Legacy)
+Original web interface for browsing the media library
 - Browse 1,327+ Archive.org items
 - Search by type, year, popularity
 - Visual grid layout
 - Runs at http://localhost:5001
 
-### 2. `shitting_it_out/` - Broadcasting Engine
-The core streaming system
+### 3. `shitting_it_out/` - Python Broadcasting Engine
+The core streaming system (being ported to Elixir)
 - **OBS Feeder**: Seamlessly swaps videos with zero interruption
 - **Video Manager**: Downloads and rotates content (2 videos max)
 - **Overlay Generator**: Creates HTML overlays with news ticker
 - **Stream Coordinator**: Manages the whole operation
 
-### 3. `b_roll/` - Content Database
+### 4. `b_roll/` - Content Database
 SQLite database of curated Archive.org content
 - 1,327 items with metadata
 - Curated from @mark_pines_archive_project
+- Shared between Python and Elixir applications
 
 ## 🏗 Architecture
 
@@ -73,12 +81,24 @@ Traditional streaming requires complex playlist management. Our solution:
 
 ### Prerequisites
 - Python 3.8+
+- Elixir 1.15+ (for new bob_tv application)
 - OBS Studio
 - 50GB free disk space
 - FFmpeg (optional, for better performance)
+- SQLite3
 
 ### Installation
 
+#### For Elixir Application (New)
+```bash
+cd bob_tv
+mix deps.get
+mix ecto.migrate
+mix phx.server
+# Visit http://localhost:4000/catalog
+```
+
+#### For Python Streaming (Current)
 1. **Run the launcher**:
    ```bash
    ./bobby_tv.sh
@@ -148,9 +168,12 @@ Edit `overlays/full_overlay.html` for custom styling
 
 ## 📚 Documentation
 
-- `shitting_it_out/README.md` - Detailed streaming setup
-- `shitting_it_out/CLAUDE.md` - Technical implementation notes
-- `catalog_explorer/README.md` - Catalog browser documentation
+- `bob_tv/README.md` - Elixir application documentation
+- `bob_tv/CLAUDE.md` - Elixir technical context for AI sessions
+- `shitting_it_out/README.md` - Python streaming setup
+- `shitting_it_out/CLAUDE.md` - Python technical implementation notes
+- `catalog_explorer/README.md` - Python catalog browser documentation
+- `b_roll/CLAUDE.md` - Database and crawler documentation
 
 ## 🤝 Credits
 
@@ -160,7 +183,15 @@ Edit `overlays/full_overlay.html` for custom styling
 
 ---
 
-**Status**: Production Ready
+**Status**: Production Ready (Python) | In Development (Elixir)
 **Platform**: stream.place
 **Content**: https://archive.org/details/@mark_pines_archive_project
-**Last Updated**: September 2024
+**Database**: 1,327 curated items from Archive.org
+**Last Updated**: September 2025
+
+### Project Roadmap
+- ✅ Python streaming system (complete)
+- ✅ Elixir catalog explorer (complete)
+- 🚧 Elixir streaming system port (in progress)
+- 🚧 LiveView monitoring dashboard (planned)
+- 🚧 Unified Elixir application (planned)
