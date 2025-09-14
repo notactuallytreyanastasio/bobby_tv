@@ -64,3 +64,5 @@ bob_tv/bob_tv-*.tar
 bob_tv/priv/static/assets/
 bob_tv/priv/static/cache_manifest.json
 bob_tv/assets/node_modules/
+
+catalog_explorer/catalog_explorer
