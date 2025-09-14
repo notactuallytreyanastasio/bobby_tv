@@ -1,0 +1,451 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>📺 Bobby TV Streaming Dashboard</h1>
+    <div class={"status-indicator #{if @streaming, do: "streaming", else: "idle"}"}>
+      <%= if @streaming, do: "● LIVE", else: "● OFFLINE" %>
+    </div>
+  </header>
+
+  <div class="controls-section">
+    <h2>Stream Controls</h2>
+    <div class="button-group">
+      <%= if not @streaming do %>
+        <button phx-click="start_streaming" class="btn btn-start">
+          ▶ Start Streaming
+        </button>
+      <% else %>
+        <button phx-click="stop_streaming" class="btn btn-stop">
+          ■ Stop Streaming
+        </button>
+        <button phx-click="swap_videos" class="btn btn-action">
+          ⟳ Swap Videos
+        </button>
+      <% end %>
+      <button phx-click="download_next" class="btn btn-action">
+        ⬇ Download Next
+      </button>
+      <button phx-click="cleanup_videos" class="btn btn-action">
+        🗑 Cleanup
+      </button>
+      <button phx-click="update_overlays" class="btn btn-action">
+        🎨 Update Overlays
+      </button>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="status-card">
+      <h3>Current Video</h3>
+      <div class="video-info">
+        <%= if @coordinator_status[:current_video] do %>
+          <div class="video-title">
+            <%= truncate(@coordinator_status[:current_video][:title], 50) %>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style={"width: #{format_percentage(@coordinator_status[:progress_percentage])}"}></div>
+          </div>
+          <div class="video-stats">
+            <span>Progress: <%= format_percentage(@coordinator_status[:progress_percentage]) %></span>
+            <span>Elapsed: <%= format_duration(@coordinator_status[:elapsed_seconds] || 0) %></span>
+          </div>
+        <% else %>
+          <div class="no-video">No video playing</div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="status-card">
+      <h3>Next Video</h3>
+      <div class="video-info">
+        <%= if @coordinator_status[:next_video] do %>
+          <div class="video-title">
+            <%= truncate(@coordinator_status[:next_video][:title], 50) %>
+          </div>
+          <div class={"video-status #{if @coordinator_status[:preparing_next], do: "preparing"}"}>
+            <%= if @coordinator_status[:preparing_next], do: "Preparing...", else: "Ready" %>
+          </div>
+        <% else %>
+          <div class="no-video">Not prepared</div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="status-card">
+      <h3>Storage</h3>
+      <div class="storage-info">
+        <div class="storage-bar">
+          <div class="storage-fill" style={"width: #{format_percentage((@storage_info[:total_gb] || 0) / (@storage_info[:max_gb] || 40) * 100)}"}></div>
+        </div>
+        <div class="storage-stats">
+          <span>Used: <%= format_gb(@storage_info[:total_bytes] || 0) %></span>
+          <span>Max: <%= @storage_info[:max_gb] || 40 %> GB</span>
+        </div>
+        <div class="file-count">
+          Files: <%= @storage_info[:file_count] || 0 %>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-card">
+      <h3>Statistics</h3>
+      <div class="stats-list">
+        <div class="stat-item">
+          <span class="stat-label">Uptime:</span>
+          <span class="stat-value"><%= @uptime %></span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Played:</span>
+          <span class="stat-value"><%= @total_played %></span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">In Playlist:</span>
+          <span class="stat-value"><%= length(@playlist) %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="playlist-section">
+    <h3>Upcoming Playlist</h3>
+    <%= if length(@playlist) > 0 do %>
+      <div class="playlist-items">
+        <%= for {item, index} <- Enum.with_index(@playlist, 1) do %>
+          <div class="playlist-item">
+            <span class="playlist-number"><%= index %>.</span>
+            <span class="playlist-title"><%= truncate(item[:title] || item["title"], 60) %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="empty-playlist">No items in playlist - videos will be selected randomly</div>
+    <% end %>
+  </div>
+
+  <div class="recently-played-section">
+    <h3>Recently Played</h3>
+    <%= if length(@recently_played) > 0 do %>
+      <div class="recent-list">
+        <%= for id <- Enum.take(@recently_played, 5) do %>
+          <div class="recent-item">• <%= id %></div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="no-recent">No videos played yet</div>
+    <% end %>
+  </div>
+
+  <div class="overlay-section">
+    <h3>Overlay Status</h3>
+    <div class="overlay-info">
+      <div class={"overlay-status #{if @overlay_status[:active], do: "active"}"}>
+        Status: <%= if @overlay_status[:active], do: "Active", else: "Inactive" %>
+      </div>
+      <div class="overlay-files">
+        <h4>Generated Files:</h4>
+        <%= for file <- (@overlay_status[:overlay_files] || []) do %>
+          <div class="overlay-file">• <%= Path.basename(file) %></div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dashboard-container {
+    padding: 20px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+  }
+
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+  }
+
+  .dashboard-header h1 {
+    margin: 0;
+    font-size: 2em;
+    color: #00ff00;
+    text-shadow: 0 0 10px #00ff00;
+  }
+
+  .status-indicator {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 20px;
+  }
+
+  .status-indicator.streaming {
+    background: #00ff00;
+    color: #000;
+    animation: pulse 2s infinite;
+  }
+
+  .status-indicator.idle {
+    background: #666;
+    color: #fff;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .controls-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+  }
+
+  .controls-section h2 {
+    color: #00ffff;
+    margin-bottom: 15px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-start {
+    background: #00ff00;
+    color: #000;
+  }
+
+  .btn-stop {
+    background: #ff0000;
+    color: #fff;
+  }
+
+  .btn-action {
+    background: #0088ff;
+    color: #fff;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .status-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+  }
+
+  .status-card h3 {
+    color: #ffff00;
+    margin-bottom: 15px;
+    text-shadow: 0 0 5px #ffff00;
+  }
+
+  .video-title {
+    font-size: 1.1em;
+    color: #00ff00;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar {
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff00, #00ffff);
+    transition: width 0.5s;
+  }
+
+  .video-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #aaa;
+  }
+
+  .no-video {
+    color: #666;
+    font-style: italic;
+  }
+
+  .video-status {
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: rgba(0, 255, 0, 0.1);
+    color: #00ff00;
+    display: inline-block;
+  }
+
+  .video-status.preparing {
+    background: rgba(255, 255, 0, 0.1);
+    color: #ffff00;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .storage-bar {
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .storage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff00ff, #00ffff);
+  }
+
+  .storage-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #aaa;
+    margin-bottom: 5px;
+  }
+
+  .file-count {
+    color: #00ffff;
+  }
+
+  .stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .stat-label {
+    color: #aaa;
+  }
+
+  .stat-value {
+    color: #00ff00;
+    font-weight: bold;
+  }
+
+  .playlist-section,
+  .recently-played-section,
+  .overlay-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+  }
+
+  .playlist-section h3,
+  .recently-played-section h3,
+  .overlay-section h3 {
+    color: #ff00ff;
+    margin-bottom: 15px;
+    text-shadow: 0 0 5px #ff00ff;
+  }
+
+  .playlist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .playlist-item {
+    padding: 8px;
+    background: rgba(0, 255, 255, 0.05);
+    border-left: 3px solid #00ffff;
+  }
+
+  .playlist-number {
+    color: #ffff00;
+    margin-right: 10px;
+  }
+
+  .playlist-title {
+    color: #fff;
+  }
+
+  .empty-playlist,
+  .no-recent {
+    color: #666;
+    font-style: italic;
+  }
+
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .recent-item {
+    color: #00ff00;
+    font-size: 0.9em;
+  }
+
+  .overlay-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .overlay-status {
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff6666;
+    display: inline-block;
+    width: fit-content;
+  }
+
+  .overlay-status.active {
+    background: rgba(0, 255, 0, 0.1);
+    color: #00ff00;
+  }
+
+  .overlay-files h4 {
+    color: #00ffff;
+    margin-bottom: 10px;
+  }
+
+  .overlay-file {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-left: 10px;
+  }
+</style>

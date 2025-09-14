@@ -25,6 +25,9 @@ defmodule BobTvWeb.Router do
       live "/catalog", CatalogLive.Index, :index
       live "/catalog/:id", CatalogLive.Show, :show
     end
+
+    # Streaming Dashboard
+    live "/dashboard", DashboardLive, :index
   end
 
   # API routes for catalog stats

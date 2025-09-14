@@ -14,8 +14,8 @@ defmodule BobTv.Application do
        repos: Application.fetch_env!(:bob_tv, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:bob_tv, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BobTv.PubSub},
-      # Start a worker by calling: BobTv.Worker.start_link(arg)
-      # {BobTv.Worker, arg},
+      # Start the streaming supervisor
+      {BobTv.Streaming.Supervisor, []},
       # Start to serve requests, typically the last entry
       BobTvWeb.Endpoint
     ]

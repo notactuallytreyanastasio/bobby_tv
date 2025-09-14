@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 100%);
+      color: #00ffff;
+    }
+    .header {
+      font-size: 16px;
+      color: #ff00ff;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #ff00ff;
+    }
+    .item {
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding-left: 10px;
+      opacity: 0;
+      animation: slideIn 0.5s forwards;
+    }
+    .item:nth-child(2) { animation-delay: 0.1s; }
+    .item:nth-child(3) { animation-delay: 0.2s; }
+    .item:nth-child(4) { animation-delay: 0.3s; }
+    .item:nth-child(5) { animation-delay: 0.4s; }
+    .item:nth-child(6) { animation-delay: 0.5s; }
+    .number {
+      color: #ffff00;
+      margin-right: 10px;
+    }
+    .title {
+      color: #00ff00;
+      text-shadow: 0 0 5px #00ff00;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">COMING UP</div>
+  <div class="item">
+  <span class="number">1.</span>
+  <span class="title">MA NY 1994 01 23</span>
+</div>
+
+<div class="item">
+  <span class="number">2.</span>
+  <span class="title">Water Gel master 1984 06 25</span>
+</div>
+
+<div class="item">
+  <span class="number">3.</span>
+  <span class="title">Ron Jacobs Jaguar Productions Car Show Reel for John Oates Tommy Mottola Champion Entertainment</span>
+</div>
+
+<div class="item">
+  <span class="number">4.</span>
+  <span class="title">Mark Pines Video DJ Screen 1992</span>
+</div>
+
+<div class="item">
+  <span class="number">5.</span>
+  <span class="title">Rascals 1 Master 1992 03 12</span>
+</div>
+
+</body>
+</html>
