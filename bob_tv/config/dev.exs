@@ -1,8 +1,9 @@
 import Config
 
 # Configure your database
+# Point to the existing media library database
 config :bob_tv, BobTv.Repo,
-  database: Path.expand("../bob_tv_dev.db", __DIR__),
+  database: Path.expand("../../b_roll/media_library.db", __DIR__),
   pool_size: 5,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true

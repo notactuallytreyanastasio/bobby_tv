@@ -18,6 +18,20 @@ defmodule BobTvWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # Catalog Explorer routes
+    live_session :catalog,
+      layout: {BobTvWeb.Layouts, :catalog} do
+      live "/catalog", CatalogLive.Index, :index
+      live "/catalog/:id", CatalogLive.Show, :show
+    end
+  end
+
+  # API routes for catalog stats
+  scope "/api", BobTvWeb do
+    pipe_through :api
+
+    get "/stats", CatalogController, :stats
   end
 
   # Other scopes may use custom stacks.

@@ -1,0 +1,128 @@
+<div class="control-panel">
+  <form phx-change="filter" class="filter-form">
+    <div class="filter-group">
+      <label class="retro-label">TYPE:</label>
+      <select name="type" class="retro-select">
+        <option value="all" selected={@current_type == "all"}>ALL CHANNELS</option>
+        <option value="movies" selected={@current_type == "movies"}>🎬 MOVIES (<%= Map.get(@type_counts, "movies", 0) %>)</option>
+        <option value="audio" selected={@current_type == "audio"}>🎵 AUDIO (<%= Map.get(@type_counts, "audio", 0) %>)</option>
+        <option value="collection" selected={@current_type == "collection"}>📁 COLLECTIONS (<%= Map.get(@type_counts, "collection", 0) %>)</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="retro-label">SORT:</label>
+      <select name="sort" class="retro-select">
+        <option value="random" selected={@current_sort == "random"}>🎲 SHUFFLE</option>
+        <option value="downloads" selected={@current_sort == "downloads"}>📊 POPULAR</option>
+        <option value="date" selected={@current_sort == "date"}>📅 NEWEST</option>
+        <option value="title" selected={@current_sort == "title"}>🔤 A-Z</option>
+        <option value="size" selected={@current_sort == "size"}>💾 SIZE</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="retro-label">YEAR:</label>
+      <select name="year" class="retro-select">
+        <option value="">ANY YEAR</option>
+        <%= for year <- @years do %>
+          <option value={year} selected={@current_year == to_string(year)}><%= year %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <div class="filter-group search-group">
+      <label class="retro-label">SEARCH:</label>
+      <input type="text" name="search" value={@current_search}
+             class="retro-input" placeholder="Find something...">
+      <button type="submit" class="retro-btn">🔍</button>
+    </div>
+  </form>
+
+  <div class="stats-bar">
+    <span class="stat-item">📊 SHOWING <%= format_number(@total_items) %> / <%= format_number(@total_in_db) %> ITEMS</span>
+    <span class="stat-item">📄 PAGE <%= @current_page %> / <%= @total_pages %></span>
+  </div>
+</div>
+
+<!-- Programming Ideas Section -->
+<%= if @programming_ideas != [] and @current_page == 1 and @current_search == "" do %>
+<div class="programming-ideas">
+  <h2 class="retro-title">📺 PROGRAMMING BLOCKS</h2>
+  <div class="idea-blocks">
+    <%= for idea <- @programming_ideas do %>
+    <div class="idea-block">
+      <h3 class="block-title"><%= idea.block %></h3>
+      <p class="block-desc"><%= idea.description %></p>
+      <div class="block-items">
+        <%= for item <- Enum.take(idea.items, 2) do %>
+        <.link navigate={~p"/catalog/#{item.id}"} class="block-item">
+          • <%= String.slice(item.title || "", 0..29) %><%= if String.length(item.title || "") > 30 do %>...<% end %>
+        </.link>
+        <% end %>
+      </div>
+    </div>
+    <% end %>
+  </div>
+</div>
+<% end %>
+
+<!-- Media Grid -->
+<div class="media-grid">
+  <%= for item <- @items do %>
+  <div class="media-card" phx-click={JS.navigate(~p"/catalog/#{item.id}")}>
+    <div class="media-thumbnail">
+      <img src={item.thumbnail_url}
+           alt={item.title}
+           loading="lazy"
+           onerror="this.src='/images/no-signal.svg'; this.onerror=null;">
+      <div class="media-type-badge">
+        <%= case item.mediatype do
+          "movies" -> "🎬"
+          "audio" -> "🎵"
+          _ -> "📁"
+        end %>
+      </div>
+      <%= if item.downloads && item.downloads > 1000 do %>
+      <div class="popular-badge">HOT</div>
+      <% end %>
+    </div>
+    <div class="media-info">
+      <h3 class="media-title"><%= String.slice(item.title || "", 0..49) %><%= if String.length(item.title || "") > 50 do %>...<% end %></h3>
+      <div class="media-meta">
+        <%= if item.creator do %>
+        <span class="meta-item">👤 <%= String.slice(item.creator, 0..19) %></span>
+        <% end %>
+        <%= if item.year do %>
+        <span class="meta-item">📅 <%= item.year %></span>
+        <% end %>
+        <%= if item.downloads do %>
+        <span class="meta-item">⬇ <%= format_number(item.downloads) %></span>
+        <% end %>
+        <%= if item.item_size do %>
+        <span class="meta-item">💾 <%= format_size(item.item_size) %></span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <% end %>
+</div>
+
+<!-- Pagination -->
+<%= if @total_pages > 1 do %>
+<div class="pagination">
+  <%= if @current_page > 1 do %>
+  <.link patch={~p"/catalog?#{build_query(@current_page - 1, @current_type, @current_sort, @current_search, @current_year)}"}
+         class="page-btn">◄ PREV</.link>
+  <% end %>
+
+  <span class="page-info">
+    CHANNEL <%= @current_page %> OF <%= @total_pages %>
+  </span>
+
+  <%= if @current_page < @total_pages do %>
+  <.link patch={~p"/catalog?#{build_query(@current_page + 1, @current_type, @current_sort, @current_search, @current_year)}"}
+         class="page-btn">NEXT ►</.link>
+  <% end %>
+</div>
+<% end %>

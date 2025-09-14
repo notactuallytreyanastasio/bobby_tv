@@ -1,0 +1,64 @@
+<div class="tv-static"></div>
+<div class="scanlines"></div>
+
+<header class="tv-header">
+  <div class="channel-info">
+    <span class="channel-number">CH 73</span>
+    <h1 class="channel-title">
+      <.link navigate={~p"/catalog"}>THE BOBBING CHANNEL</.link>
+    </h1>
+    <span class="live-indicator">● CATALOG</span>
+  </div>
+
+  <nav class="tv-nav">
+    <.link navigate={~p"/catalog"} class={"nav-btn #{if @live_action == :index, do: "active"}"}>📺 BROWSE</.link>
+    <button class="nav-btn" phx-click="random">🎲 RANDOM</button>
+    <button class="nav-btn" phx-click="toggle_night_mode">🌙 NIGHT</button>
+  </nav>
+</header>
+
+<main class="tv-content">
+  {@inner_content}
+</main>
+
+<footer class="tv-footer">
+  <div class="footer-ticker">
+    <span class="ticker-content">
+      📡 BROADCASTING FROM RASPBERRY PI •
+      📼 1,327 ITEMS IN ARCHIVE •
+      🎬 27TB OF CONTENT •
+      📺 POWERED BY ARCHIVE.ORG •
+      🌐 STREAMING TO STREAM.PLACE •
+      ⚡ MADE WITH LOVE AND STATIC •
+    </span>
+  </div>
+  <div class="signal-info">
+    SIGNAL: <span id="signal-strength">███████░░</span> 78%
+  </div>
+</footer>
+
+<script>
+  // Handle copy to clipboard
+  window.addEventListener("phx:copy_to_clipboard", (e) => {
+    navigator.clipboard.writeText(e.detail.text).then(() => {
+      alert('Link copied to clipboard!');
+    });
+  });
+
+  // Handle add to playlist
+  window.addEventListener("phx:add_to_playlist", (e) => {
+    let playlist = JSON.parse(localStorage.getItem('bobbing_playlist') || '[]');
+    if (!playlist.includes(e.detail.id)) {
+      playlist.push(e.detail.id);
+      localStorage.setItem('bobbing_playlist', JSON.stringify(playlist));
+      alert('Added to playlist!');
+    } else {
+      alert('Already in playlist!');
+    }
+  });
+
+  // Handle night mode toggle
+  window.addEventListener("phx:toggle_night_mode", (e) => {
+    document.body.classList.toggle('night-mode');
+  });
+</script>
