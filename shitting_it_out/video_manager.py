@@ -19,7 +19,7 @@ VIDEO_DIR = Path('streaming_videos')
 MAX_STORAGE_GB = 40  # Maximum storage to use
 MIN_FREE_SPACE_GB = 10  # Always keep this much free space
 MAX_VIDEO_SIZE_GB = 10  # Max size per video
-VIDEOS_TO_MAINTAIN = 2  # Keep only current + next video ready
+VIDEOS_TO_MAINTAIN = -1  # -1 means fill up to max storage limit
 
 class VideoManager:
     def __init__(self):
@@ -193,6 +193,7 @@ class VideoManager:
         """Remove played videos to free space"""
         storage = self.get_storage_info()
 
+        # Only cleanup if we're over the limit or running low on disk space
         if storage['free_gb'] > MIN_FREE_SPACE_GB and storage['video_gb'] < MAX_STORAGE_GB:
             return  # No cleanup needed
 
@@ -254,15 +255,21 @@ class VideoManager:
         # Cleanup if needed
         self.cleanup_old_videos()
 
-        # Calculate how many videos we need
-        current_count = storage['video_count']
-        needed = max(0, VIDEOS_TO_MAINTAIN - current_count)
+        # If VIDEOS_TO_MAINTAIN is -1, fill up to storage limit
+        if VIDEOS_TO_MAINTAIN == -1:
+            # Keep downloading until we hit the limit
+            print(f"\n🎬 Filling library up to {MAX_STORAGE_GB}GB limit...")
+            needed = 10  # Try to download up to 10 videos at a time
+        else:
+            # Calculate how many videos we need
+            current_count = storage['video_count']
+            needed = max(0, VIDEOS_TO_MAINTAIN - current_count)
 
-        if needed == 0:
-            print(f"\n✓ Library is full with {current_count} videos")
-            return
+            if needed == 0:
+                print(f"\n✓ Library is full with {current_count} videos")
+                return
 
-        print(f"\n🎬 Downloading {needed} new videos...")
+            print(f"\n🎬 Downloading {needed} new videos...")
 
         # Find and download videos
         candidates = self.find_next_videos(needed * 2)  # Get extra candidates
@@ -329,6 +336,27 @@ class VideoManager:
                     }
 
         return None
+
+    def mark_video_played(self, identifier):
+        """Mark a video as played and delete it immediately"""
+        if identifier in self.playlist['downloaded']:
+            video_info = self.playlist['downloaded'][identifier]
+            video_path = self.video_dir / video_info['file']
+
+            # Delete the video file
+            if video_path.exists():
+                size_gb = video_path.stat().st_size / (1024**3)
+                video_path.unlink()
+                print(f"  🗑️  Deleted played video: {video_info['title']} ({size_gb:.2f}GB)")
+
+            # Remove from downloaded list
+            del self.playlist['downloaded'][identifier]
+
+            # Remove from current
+            if self.playlist['current'] == identifier:
+                self.playlist['current'] = None
+
+            self.save_playlist()
 
     def generate_obs_playlist(self):
         """Generate playlist file for OBS VLC source"""

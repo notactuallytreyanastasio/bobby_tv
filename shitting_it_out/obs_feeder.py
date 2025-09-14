@@ -12,6 +12,7 @@ from pathlib import Path
 import json
 from datetime import datetime
 import threading
+from video_manager import VideoManager
 
 class OBSFeeder:
     def __init__(self):
@@ -22,11 +23,8 @@ class OBSFeeder:
         self.obs_file = self.video_dir / 'current_stream.mp4'
         self.next_file = self.video_dir / 'next_stream.mp4'
 
-        # Queue management
-        self.queue_dir = self.video_dir / 'queue'
-        self.queue_dir.mkdir(exist_ok=True)
-        self.played_dir = self.video_dir / 'played'
-        self.played_dir.mkdir(exist_ok=True)
+        # Video manager handles downloading and deletion
+        self.video_manager = VideoManager()
 
         self.state_file = Path('obs_feeder_state.json')
         self.load_state()
@@ -67,24 +65,25 @@ class OBSFeeder:
 
     def prepare_next_video(self):
         """Prepare the next video in the background"""
-        # Get all videos in queue
-        queue_videos = sorted(self.queue_dir.glob('*.mp4'))
+        # Get next video from video manager
+        next_video_info = self.video_manager.get_next_video()
 
-        if not queue_videos:
-            print("⚠️  No videos in queue! Downloading more...")
+        if not next_video_info:
+            print("⚠️  No videos available! Downloading more...")
             # Trigger video download
-            subprocess.run(['python', 'video_manager.py', 'maintain'])
-            queue_videos = sorted(self.queue_dir.glob('*.mp4'))
+            self.video_manager.maintain_library()
+            next_video_info = self.video_manager.get_next_video()
 
-        if queue_videos:
-            next_video = queue_videos[0]
-            print(f"📥 Preparing next: {next_video.name}")
+        if next_video_info:
+            next_video_path = Path(next_video_info['path'])
+            print(f"📥 Preparing next: {next_video_info['title']}")
 
             # Copy to next_file (so it's ready to swap)
-            shutil.copy2(next_video, self.next_file)
+            shutil.copy2(next_video_path, self.next_file)
 
-            # Move original to played
-            shutil.move(str(next_video), self.played_dir / next_video.name)
+            # Store the identifier so we can mark it played later
+            self.state['next_identifier'] = next_video_info['identifier']
+            self.save_state()
 
             return self.next_file
 
@@ -97,6 +96,10 @@ class OBSFeeder:
             return False
 
         print(f"🔄 Swapping videos...")
+
+        # Mark the current video as played (will delete it)
+        if self.state.get('current_identifier'):
+            self.video_manager.mark_video_played(self.state['current_identifier'])
 
         # Method 1: Atomic rename (least interruption)
         temp_file = self.video_dir / 'temp_stream.mp4'
@@ -111,6 +114,10 @@ class OBSFeeder:
         # Clean up temp
         if temp_file.exists():
             temp_file.unlink()
+
+        # Update current identifier
+        self.state['current_identifier'] = self.state.get('next_identifier')
+        self.state['next_identifier'] = None
 
         print(f"✅ Swap complete!")
         return True
@@ -151,32 +158,22 @@ class OBSFeeder:
         """Set up initial video for OBS"""
         print("\n🎬 Initializing OBS stream file...")
 
-        # Move any existing videos to queue
-        for video in self.video_dir.glob('*.mp4'):
-            if video.name not in ['current_stream.mp4', 'next_stream.mp4']:
-                print(f"  Moving {video.name} to queue")
-                shutil.move(str(video), self.queue_dir / video.name)
+        # Make sure we have videos
+        self.video_manager.maintain_library()
 
         # Get first video
-        queue_videos = sorted(self.queue_dir.glob('*.mp4'))
+        first_video_info = self.video_manager.get_next_video()
 
-        if not queue_videos:
-            print("📥 No videos found, downloading...")
-            subprocess.run(['python', 'video_manager.py', 'maintain'])
-            queue_videos = sorted(self.queue_dir.glob('*.mp4'))
-
-        if queue_videos:
-            first_video = queue_videos[0]
-            print(f"🎥 Setting up first video: {first_video.name}")
+        if first_video_info:
+            first_video_path = Path(first_video_info['path'])
+            print(f"🎥 Setting up first video: {first_video_info['title']}")
 
             # Copy as current stream
-            shutil.copy2(first_video, self.obs_file)
-
-            # Move original to played
-            shutil.move(str(first_video), self.played_dir / first_video.name)
+            shutil.copy2(first_video_path, self.obs_file)
 
             # Update state
-            self.state['current_video'] = first_video.name
+            self.state['current_video'] = first_video_info['title']
+            self.state['current_identifier'] = first_video_info['identifier']
             self.state['current_duration'] = self.get_video_duration(self.obs_file)
             self.state['started_at'] = datetime.now().isoformat()
             self.save_state()
@@ -221,21 +218,14 @@ class OBSFeeder:
                         # Prepare next video
                         threading.Thread(target=self.prepare_next_video).start()
 
-                # Clean up played directory if too full
-                played_videos = list(self.played_dir.glob('*.mp4'))
-                if len(played_videos) > 10:
-                    print("🧹 Cleaning old played videos...")
-                    for video in played_videos[:-5]:  # Keep last 5
-                        video.unlink()
+                # Check storage and download more if needed
+                storage = self.video_manager.get_storage_info()
+                print(f"\n📊 Status: Videos: {storage['video_count']} | Storage: {storage['video_gb']:.1f}GB | Played: {self.state['total_played']}")
 
-                # Check queue health
-                queue_count = len(list(self.queue_dir.glob('*.mp4')))
-                print(f"\n📊 Status: Queue: {queue_count} | Played: {self.state['total_played']}")
-
-                # Download more if queue is low
-                if queue_count < 2:
-                    print("📥 Queue low, downloading more videos...")
-                    subprocess.run(['python', 'video_manager.py', 'maintain'])
+                # Maintain library (download more if space available)
+                if storage['can_download']:
+                    print("📥 Maintaining video library...")
+                    self.video_manager.maintain_library()
 
                 # Sleep for a bit
                 time.sleep(10)  # Check every 10 seconds
@@ -261,12 +251,12 @@ class OBSFeeder:
         if self.next_file.exists():
             print(f"📥 Next ready: {self.next_file.name}")
 
-        queue_count = len(list(self.queue_dir.glob('*.mp4')))
-        played_count = len(list(self.played_dir.glob('*.mp4')))
-
+        # Get storage info from video manager
+        storage = self.video_manager.get_storage_info()
         print(f"\n📚 Library:")
-        print(f"   Queue: {queue_count} videos")
-        print(f"   Played: {played_count} videos")
+        print(f"   Videos available: {storage['video_count']}")
+        print(f"   Storage used: {storage['video_gb']:.1f}GB / 40GB")
+        print(f"   Free space: {storage['free_gb']:.1f}GB")
         print(f"   Total streamed: {self.state.get('total_played', 0)} videos")
 
         if self.state.get('started_at'):
